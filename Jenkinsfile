@@ -2,14 +2,14 @@ pipeline {
   agent any
 
   stages {
-      stage('Build Artifact') {
+      stage('Build Artifact - Maven') {
             steps {
               sh "mvn clean package -DskipTests=true"
               archive 'target/*.jar'
             }
         }
 
-      stage('Unit Tests') {
+      stage('Unit Tests - Junit & Jacoco') {
             steps {
               sh "mvn test"
             }
@@ -19,7 +19,13 @@ pipeline {
           jacoco execPattern: 'target/jacoco.exec'
         }
       }
-        }     
+        }  
+
+      stage('SonarQube - SAST') {
+        steps {
+          sh "mvn clean verify sonar:sonar -Dsonar.projectKey=numeric-application -Dsonar.projectName='numeric-application' -Dsonar.host.url=http://devsecops-shashi.eastus.cloudapp.azure.com:9000 -Dsonar.token=sqp_7c7c458443f415329a69a0fafa479c8eb4e74673"
+        }
+      }   
 
       stage('Docker Build and Push') {
       steps {
